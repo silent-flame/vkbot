@@ -1,4 +1,4 @@
-package silentflame.conf;
+package silentflame.bot;
 
 import com.petersamokhin.bots.sdk.clients.Group;
 import com.petersamokhin.bots.sdk.objects.Message;
