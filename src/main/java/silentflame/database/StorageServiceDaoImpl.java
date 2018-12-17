@@ -6,6 +6,7 @@ import silentflame.database.entities.Lang;
 import silentflame.database.entities.User;
 
 import javax.sql.DataSource;
+import java.util.Optional;
 
 @Component
 public class StorageServiceDaoImpl implements StorageServiceDao {
@@ -23,16 +24,20 @@ public class StorageServiceDaoImpl implements StorageServiceDao {
     }
 
     @Override
-    public User getUser(Integer id) {
+    public Optional<User> getUser(Integer id) {
         return jdbcTemplate.query("SELECT id, first_name, last_name, lang, subscriptions FROM users WHERE id=?",
                 new Object[]{id}, resultSet -> {
-                    return User.builder()
-                            .id(resultSet.getInt("id"))
-                            .firstName(resultSet.getString("first_name"))
-                            .lastName(resultSet.getString("last_name"))
-                            .lang(Lang.valueOf(resultSet.getString("lang")))
-                            .subscriptions(resultSet.getString("subscriptions"))
-                            .build();
+                    if (resultSet.getInt("id") != 0) {
+                        return Optional.of(User.builder()
+                                .id(resultSet.getInt("id"))
+                                .firstName(resultSet.getString("first_name"))
+                                .lastName(resultSet.getString("last_name"))
+                                .lang(Lang.valueOf(resultSet.getString("lang")))
+                                .subscriptions(resultSet.getString("subscriptions"))
+                                .build());
+                    } else {
+                        return Optional.empty();
+                    }
                 });
     }
 

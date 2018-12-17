@@ -5,6 +5,8 @@ import lombok.val;
 import org.springframework.stereotype.Component;
 import silentflame.database.entities.User;
 
+import java.util.Optional;
+
 @Component
 @Slf4j
 public class StorageServiceImpl implements StorageService {
@@ -21,10 +23,10 @@ public class StorageServiceImpl implements StorageService {
     }
 
     @Override
-    public User getUser(Integer id) {
-       val user=  storageServiceDao.getUser(id);
-       log.info("User={} retrieved by id",user);
-       return user;
+    public Optional<User> getUser(Integer id) {
+        val user = storageServiceDao.getUser(id);
+        log.info("User={} retrieved by id", user);
+        return user;
     }
 
     @Override
