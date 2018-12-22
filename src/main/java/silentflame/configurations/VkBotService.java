@@ -3,6 +3,7 @@ package silentflame.configurations;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 import silentflame.bot.VkBot;
 import silentflame.database.StorageService;
@@ -11,11 +12,11 @@ import silentflame.database.entities.User;
 
 import java.util.Optional;
 
-@Component
+@Configuration
 @Slf4j
 public class VkBotService {
-    @Bean
-    public VkBotService initVk(VkBot vkBot, StorageService storageService) {
+    @Autowired
+    public void initVk(VkBot vkBot, StorageService storageService) {
         vkBot.onCommand(message -> {
             User user = vkBot.getUserFromVkApi(message.authorId());
             if (!storageService.getUser(message.authorId()).isPresent()) {
@@ -89,7 +90,5 @@ public class VkBotService {
                     message.authorId(),
                     "Hello " + author.getFirstName() + " " + author.getLastName());
         });
-        return null;
     }
-
 }
