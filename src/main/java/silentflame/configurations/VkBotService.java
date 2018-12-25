@@ -12,11 +12,11 @@ import silentflame.database.entities.User;
 
 import java.util.Optional;
 
-@Configuration
-@Slf4j
+//@Configuration
+//@Slf4j
 public class VkBotService {
-    @Autowired
-    public void initVk(VkBot vkBot, StorageService storageService) {
+//    @Autowired
+    /*public void initVk(VkBot vkBot, StorageService storageService) {
         vkBot.onCommand(message -> {
             User user = vkBot.getUserFromVkApi(message.authorId());
             if (!storageService.getUser(message.authorId()).isPresent()) {
@@ -90,5 +90,5 @@ public class VkBotService {
                     message.authorId(),
                     "Hello " + author.getFirstName() + " " + author.getLastName());
         });
-    }
+    }*/
 }

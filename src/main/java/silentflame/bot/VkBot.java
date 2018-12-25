@@ -7,10 +7,13 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import silentflame.database.StorageService;
+import silentflame.database.entities.Lang;
 import silentflame.database.entities.User;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 
@@ -20,16 +23,17 @@ public class VkBot {
     private final Group group;
     private final Integer groupId;
     private static Integer myId = 24917833;
+    private StorageService storageService;
 
     public VkBot(
             @Value("${vkbot.groupid}")
                     Integer groupId,
             @Value("${vkbot.token}")
-                    String token) {
+                    String token, StorageService storageService) {
         this.group = new Group(groupId, token);
         this.groupId = groupId;
+        this.storageService = storageService;
     }
-
 
     public void onMessage(Consumer<Message> consumer) {
         group.onMessage(consumer::accept);
@@ -67,11 +71,86 @@ public class VkBot {
 
     @PostConstruct
     public void enableOnline() {
+
+        sendMessage(myId, "VK Bot is online now");
         JSONObject params = new JSONObject();
         params.put("group_id", groupId);
         group.api().call("groups.enableOnline", params, response -> {
             log.info("VK Bot is online now");
-            sendMessage(myId, "VK Bot is online now");
+        });
+
+        onCommand(message -> {
+            User user = getUserFromVkApi(message.authorId());
+            if (!storageService.getUser(message.authorId()).isPresent()) {
+                storageService.createUser(user);
+                sendMessage(message.authorId(),
+                        "User " + user.getFirstName() + " " + user.getLastName() + " saved");
+            } else {
+                sendMessage(message.authorId(), message.getText());
+            }
+        }, "Привет", "Hello", "Hi");
+
+        onCommand(message -> {
+            Lang lang = storageService.getUser(message.authorId()).map(User::getLang).orElse(Lang.ENG);
+            String text;
+            if (lang == Lang.RUS) {
+                text = "Список комманд:\n" +
+                        "Помощь         вывод этого сообщения\n" +
+                        "Язык           язык общения\n" +
+                        "Обращение      Как к вам обращаться\n" +
+                        "Подписки       Вывод подписок";
+            } else {
+                text = "Command list\n" +
+                        "Help                print this message\n" +
+                        "Language,Lang       communication language\n" +
+                        "Nickname            How can I call you?\n" +
+                        "Subscriptions       control of your subscriptions";
+            }
+            sendMessage(message.authorId(), text);
+        }, "Помощь", "Help");
+        onCommand(message -> {
+            Lang lang = storageService.getUser(message.authorId()).map(User::getLang).orElse(Lang.ENG);
+            String text;
+            if (lang == Lang.RUS) {
+                text = "rus,рус        Сменить язык на русский\n" +
+                        "eng,анг        Сменить язык на английский";
+            } else {
+                text = "rus,рус        switch to russian\n" +
+                        "eng,анг        switch to english";
+            }
+            sendMessage(message.authorId(), text);
+        }, "Lang", "Language");
+        onCommand(message -> {
+            Optional<User> userOptional = storageService.getUser(message.authorId());
+            if (userOptional.isPresent()) {
+                User user = userOptional.get();
+                user.setLang(Lang.RUS);
+                storageService.updateUser(user);
+                sendMessage(message.authorId(), "Язык переключен на русский");
+            } else {
+                sendMessage(message.authorId(), "Please send Hello to adding in database");
+            }
+        }, "rus", "рус");
+        onCommand(message -> {
+            Optional<User> userOptional = storageService.getUser(message.authorId());
+            if (userOptional.isPresent()) {
+                User user = userOptional.get();
+                user.setLang(Lang.ENG);
+                storageService.updateUser(user);
+                sendMessage(message.authorId(), "Switched to english");
+            } else {
+                sendMessage(message.authorId(), "Please send Hello to adding in database");
+            }
+        }, "eng", "анг");
+
+        onMessage(message -> {
+            User author = getUserFromVkApi(message.authorId());
+            log.info("Retrieved message {} from author={}", message, author);
+            storageService.getUser(author.getId());
+
+            sendMessage(
+                    message.authorId(),
+                    "Hello " + author.getFirstName() + " " + author.getLastName());
         });
     }
 
@@ -85,7 +164,7 @@ public class VkBot {
         });
     }
 
-    public static void main(String[] args) {
+/*    public static void main(String[] args) {
         VkBot vkBot = new VkBot(174706111, "60fbb9f2566c4acbe18a44e5a9945385fc7ce07d1982edae5d2b5b763de3031953f59fc5617c83aabc8cd");
         vkBot.group.onCommand(new Object[]{"command"}, message ->
                 log.info("Command retrieved={}", message)
@@ -96,8 +175,8 @@ public class VkBot {
                 .to(myId)
                 .text("Simple send")
                 .send();
-      vkBot.sendMessage(myId,"method send");
-       /* JSONObject params = new JSONObject();
+        vkBot.sendMessage(myId, "method send");
+       *//* JSONObject params = new JSONObject();
         params.put("peer_id", myId);
 
         params.put("title", " ... ");
@@ -126,7 +205,7 @@ public class VkBot {
         System.out.println("Params=" + params);
         vkBot.group.api().call("messages.send", params, response -> {
             log.info("Response={}", response);
-        });*/
+        });*//*
 
-    }
+    }*/
 }
