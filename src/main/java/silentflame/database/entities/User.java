@@ -2,6 +2,8 @@ package silentflame.database.entities;
 
 import lombok.*;
 
+import java.util.List;
+
 @AllArgsConstructor
 @Builder
 @Getter
@@ -13,6 +15,5 @@ public class User {
     @Setter
     private Lang lang;
     @Setter
-    private String subscriptions;
-
+    private List<String> subscriptions;
 }

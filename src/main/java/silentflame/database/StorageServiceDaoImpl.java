@@ -7,6 +7,8 @@ import silentflame.database.entities.Lang;
 import silentflame.database.entities.User;
 
 import javax.sql.DataSource;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Optional;
 
 @Component
@@ -35,8 +37,10 @@ public class StorageServiceDaoImpl implements StorageServiceDao {
               .id(resultSet.getInt("id"))
               .firstName(resultSet.getString("first_name"))
               .lastName(resultSet.getString("last_name"))
-              .lang(Lang.valueOf(resultSet.getString("lang")))
-              .subscriptions(resultSet.getString("subscriptions"))
+              .lang(Lang.fromValue(resultSet.getString("lang")))
+              .subscriptions(Optional.ofNullable(  resultSet.getString("subscriptions"))
+                .map(field-> new ArrayList<>( Arrays.asList( field.split(","))))
+              .orElse(new ArrayList<>()))
               .build());
           } else {
             return Optional.empty();
@@ -50,8 +54,12 @@ public class StorageServiceDaoImpl implements StorageServiceDao {
 
   @Override
   public void updateUser(User user) {
-    jdbcTemplate.update("UPDATE users SET lang=?, subscriptions=? WHERE id=?",
-      user.getLang().getValue(), user.getSubscriptions(), user.getId());
+    try {
+      jdbcTemplate.update("UPDATE users SET lang=?, subscriptions=? WHERE id=?",
+        user.getLang().getValue(), String.join(",", user.getSubscriptions()), user.getId());
+    }catch (Throwable t){
+      log.error("Error of updating user="+user,t);
+    }
   }
 
   @Override

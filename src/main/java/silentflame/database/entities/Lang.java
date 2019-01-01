@@ -12,4 +12,14 @@ public enum Lang {
         this.value = lang;
     }
 
+
+    public static Lang fromValue(String name){
+        for (Lang lang: Lang.values()) {
+            if (lang.value.equals(name))
+            {
+                return lang;
+            }
+        }
+        throw new IllegalArgumentException("Unkown value="+name);
+    }
 }
