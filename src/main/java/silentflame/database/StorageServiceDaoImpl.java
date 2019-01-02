@@ -38,9 +38,9 @@ public class StorageServiceDaoImpl implements StorageServiceDao {
               .firstName(resultSet.getString("first_name"))
               .lastName(resultSet.getString("last_name"))
               .lang(Lang.fromValue(resultSet.getString("lang")))
-              .subscriptions(Optional.ofNullable(  resultSet.getString("subscriptions"))
-                .map(field-> new ArrayList<>( Arrays.asList( field.split(","))))
-              .orElse(new ArrayList<>()))
+              .subscriptions(Optional.ofNullable(resultSet.getString("subscriptions"))
+                .map(field -> new ArrayList<>(Arrays.asList(field.split(","))))
+                .orElse(new ArrayList<>()))
               .build());
           } else {
             return Optional.empty();
@@ -57,8 +57,8 @@ public class StorageServiceDaoImpl implements StorageServiceDao {
     try {
       jdbcTemplate.update("UPDATE users SET lang=?, subscriptions=? WHERE id=?",
         user.getLang().getValue(), String.join(",", user.getSubscriptions()), user.getId());
-    }catch (Throwable t){
-      log.error("Error of updating user="+user,t);
+    } catch (Throwable t) {
+      log.error("Error of updating user=" + user, t);
     }
   }
 
