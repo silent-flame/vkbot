@@ -3,12 +3,14 @@ package silentflame.database;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
-import silentflame.database.entities.Lang;
 import silentflame.database.entities.User;
 
 import javax.sql.DataSource;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 @Component
@@ -30,18 +32,10 @@ public class StorageServiceDaoImpl implements StorageServiceDao {
   @Override
   public Optional<User> getUser(Integer id) {
     try {
-      return jdbcTemplate.query("SELECT id, first_name, last_name, lang, subscriptions FROM users WHERE id=?",
+      return jdbcTemplate.query("SELECT id, first_name, last_name, subscriptions FROM users WHERE id=?",
         new Object[] {id}, resultSet -> {
           if (resultSet.getInt("id") != 0) {
-            return Optional.of(User.builder()
-              .id(resultSet.getInt("id"))
-              .firstName(resultSet.getString("first_name"))
-              .lastName(resultSet.getString("last_name"))
-              .lang(Lang.fromValue(resultSet.getString("lang")))
-              .subscriptions(Optional.ofNullable(resultSet.getString("subscriptions"))
-                .map(field -> new ArrayList<>(Arrays.asList(field.split(","))))
-                .orElse(new ArrayList<>()))
-              .build());
+            return Optional.of(retrieveUser(resultSet));
           } else {
             return Optional.empty();
           }
@@ -55,8 +49,8 @@ public class StorageServiceDaoImpl implements StorageServiceDao {
   @Override
   public void updateUser(User user) {
     try {
-      jdbcTemplate.update("UPDATE users SET lang=?, subscriptions=? WHERE id=?",
-        user.getLang().getValue(), String.join(",", user.getSubscriptions()), user.getId());
+      jdbcTemplate.update("UPDATE users SET subscriptions=? WHERE id=?",
+        String.join(",", user.getSubscriptions()), user.getId());
     } catch (Throwable t) {
       log.error("Error of updating user=" + user, t);
     }
@@ -65,5 +59,27 @@ public class StorageServiceDaoImpl implements StorageServiceDao {
   @Override
   public void deleteUser(User user) {
     jdbcTemplate.update("DELETE FROM users WHERE id=?", user.getId());
+  }
+
+  @Override
+  public List<User> getAllUsers() {
+    List<User> users = new ArrayList<>();
+    jdbcTemplate.query("SELECT * FROM users", resultSet -> {
+      do {
+        users.add(retrieveUser(resultSet));
+      } while (resultSet.next());
+    });
+    return users;
+  }
+
+  private static User retrieveUser(ResultSet resultSet) throws SQLException {
+    return User.builder()
+      .id(resultSet.getInt("id"))
+      .firstName(resultSet.getString("first_name"))
+      .lastName(resultSet.getString("last_name"))
+      .subscriptions(Optional.ofNullable(resultSet.getString("subscriptions"))
+        .map(field -> new ArrayList<>(Arrays.asList(field.split(","))))
+        .orElse(new ArrayList<>()))
+      .build();
   }
 }

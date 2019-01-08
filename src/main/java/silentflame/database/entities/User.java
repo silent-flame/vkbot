@@ -13,7 +13,5 @@ public class User {
     private String firstName;
     private String lastName;
     @Setter
-    private Lang lang;
-    @Setter
     private List<String> subscriptions;
 }
