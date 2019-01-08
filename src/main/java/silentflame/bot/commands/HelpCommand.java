@@ -12,9 +12,9 @@ import java.util.Set;
 @Component
 public class HelpCommand implements Command {
   private final VkBotService vkBotService;
+  private final Set<Command> commands;
   private String keyword = "help";
   private String description = "Print this message";
-  private final Set<Command> commands;
 
   public HelpCommand(VkBotService vkBotService, VkEventsProcessor vkEventsProcessor) {
     this.vkBotService = vkBotService;

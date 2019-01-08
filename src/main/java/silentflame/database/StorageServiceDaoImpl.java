@@ -22,6 +22,17 @@ public class StorageServiceDaoImpl implements StorageServiceDao {
     this.jdbcTemplate = new JdbcTemplate(dataSource);
   }
 
+  private static User retrieveUser(ResultSet resultSet) throws SQLException {
+    return User.builder()
+      .id(resultSet.getInt("id"))
+      .firstName(resultSet.getString("first_name"))
+      .lastName(resultSet.getString("last_name"))
+      .subscriptions(Optional.ofNullable(resultSet.getString("subscriptions"))
+        .map(field -> new ArrayList<>(Arrays.asList(field.split(","))))
+        .orElse(new ArrayList<>()))
+      .build();
+  }
+
   @Override
   public void createUser(User user) {
     jdbcTemplate.update(
@@ -70,16 +81,5 @@ public class StorageServiceDaoImpl implements StorageServiceDao {
       } while (resultSet.next());
     });
     return users;
-  }
-
-  private static User retrieveUser(ResultSet resultSet) throws SQLException {
-    return User.builder()
-      .id(resultSet.getInt("id"))
-      .firstName(resultSet.getString("first_name"))
-      .lastName(resultSet.getString("last_name"))
-      .subscriptions(Optional.ofNullable(resultSet.getString("subscriptions"))
-        .map(field -> new ArrayList<>(Arrays.asList(field.split(","))))
-        .orElse(new ArrayList<>()))
-      .build();
   }
 }

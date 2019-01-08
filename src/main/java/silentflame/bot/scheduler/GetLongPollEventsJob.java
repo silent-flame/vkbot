@@ -49,7 +49,7 @@ public class GetLongPollEventsJob implements Job {
       } catch (LongPollServerKeyExpiredException e) {
         log.error("Long Poll error", e);
         longPollServer = vkApiClient.groups().getLongPollServer(groupActor).execute();
-        lastTimeStamp=longPollServer.getTs();
+        lastTimeStamp = longPollServer.getTs();
         jobExecutionContext.getScheduler().getContext().put("lastTimeStamp", lastTimeStamp);
       } catch (Throwable t) {
         log.error("Something went wrong", t);
