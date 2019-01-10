@@ -34,7 +34,7 @@ public class GetLongPollEventsJob implements Job {
       val consumers = (Map<String, Consumer<CallbackMessageBase>>) jobExecutionContext.getScheduler().getContext().get("consumers");
 
       var longPollServer = (GetLongPollServerResponse) jobExecutionContext.getScheduler().getContext().get("longPollServer");
-      Integer lastTimeStamp = (Integer) jobExecutionContext.getScheduler().getContext().get("lastTimeStamp");
+      Integer lastTimeStamp = jobExecutionContext.getScheduler().getContext().getInt("lastTimeStamp");
       Gson gson = (Gson) jobExecutionContext.getScheduler().getContext().get("gson");
       try {
         GetLongPollEventsResponse eventsResponse = vkApiClient.longPoll()
@@ -49,8 +49,7 @@ public class GetLongPollEventsJob implements Job {
       } catch (LongPollServerKeyExpiredException e) {
         log.error("Long Poll error", e);
         longPollServer = vkApiClient.groups().getLongPollServer(groupActor).execute();
-        lastTimeStamp = longPollServer.getTs();
-        jobExecutionContext.getScheduler().getContext().put("lastTimeStamp", lastTimeStamp);
+        jobExecutionContext.getScheduler().getContext().put("longPollServer", longPollServer);
       } catch (Throwable t) {
         log.error("Something went wrong", t);
       }
